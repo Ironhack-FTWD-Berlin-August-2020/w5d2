@@ -30,6 +30,33 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// the session middleware handles all things for us regarding the session,
+// i.e. creating the session, setting the session cookie and creating
+// the session object in the request object
+
+// session configuration
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 },
+    saveUninitialized: false,
+    resave: true,
+    store: new MongoStore({
+      // when the session cookie has an expiration date
+      // connect-mongo will use it, otherwise it will create a new 
+      // one and use ttl - time to live - in that case one day
+      mongooseConnection: mongoose.connection,
+      ttl: 24 * 60 * 60 * 1000
+    })
+  })
+)
+// end of session configuration
+
+
+
 // Express View engine setup
 
 app.use(require('node-sass-middleware')({
